@@ -3,6 +3,7 @@ import 'model/square.dart';
 import 'dart:math' show Random;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+
 enum SquareType {
   zero,
   one,
@@ -18,7 +19,12 @@ enum SquareType {
   flagged,
 }
 
-class GameBoard extends StatelessWidget {
+class GameBoard extends StatefulWidget {
+  @override
+  _GameBoardState createState() => _GameBoardState();
+}
+
+class _GameBoardState extends State<GameBoard> {
   int rowCount = 25;
 
   int columnCount = 10;
@@ -36,6 +42,12 @@ class GameBoard extends StatelessWidget {
   int bombCount = 0;
 
   int squaresLeft;
+
+  @override
+  void initState() {
+    super.initState();
+    initialiseGame();
+  }
 
   void initialiseGame(){
     boardSquares = List.generate(rowCount, (index) => List.generate(columnCount, (index) => BoardSquare()));
@@ -108,6 +120,7 @@ class GameBoard extends StatelessWidget {
         }
       }
     }
+    setState((){});
   }
 
   void _handleTap(int i, int j) {
@@ -151,11 +164,136 @@ class GameBoard extends StatelessWidget {
         }
       }
     }
+
+    setState(() {});
   }
+
+  void _gameOver(context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Game Over!"),
+          content: Text("Ooops!! You lost the game."),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () {
+                initialiseGame();
+                Navigator.pop(context);
+              },
+              child: Text("Play again"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _win(context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Congratulations!"),
+          content: Text("You Win!"),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () {
+                initialiseGame();
+                Navigator.pop(context);
+              },
+              child: Text("Play again"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: MaterialButton(
+          child: Icon(Icons.refresh),
+          onPressed: (){
+            _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Refreshed'), duration: Duration(milliseconds: 500),));
+            initialiseGame();
+          },
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+              child: GridView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columnCount,
+                ),
+                itemBuilder: (context, position) {
+                  int rowNumber = (position / columnCount).floor();
+                  int columnNumber = (position % columnCount);
+
+                  Widget _child;
+
+                  if (openedSquares[position] == false) {
+                    if (flaggedSquares[position] == true) {
+                      _child = getSquareTile(SquareType.flagged);
+                    } else {
+                      _child = getSquareTile(SquareType.facingDown);
+                    }
+                  } else {
+                    if (boardSquares[rowNumber][columnNumber].hasBomb) {
+                      _child = getSquareTile(SquareType.bomb);
+                    } else {
+                      _child = getSquareTile(
+                        getSquareTypeFromNumber(
+                            boardSquares[rowNumber][columnNumber].bombsAround),
+                      );
+                    }
+                  }
+
+                  return InkWell(
+                    onTap: () {
+                      if (boardSquares[rowNumber][columnNumber].hasBomb) {
+                        _gameOver(context);
+                      }
+                      if (boardSquares[rowNumber][columnNumber].bombsAround == 0) {
+                        _handleTap(rowNumber, columnNumber);
+                      } else {
+                        setState(() {
+                          openedSquares[position] = true;
+                          squaresLeft = squaresLeft - 1;
+                        });
+                      }
+
+                      if(squaresLeft <= bombCount) {
+                        _win(context);
+                      }
+
+                    },
+                    onLongPress: () {
+                      if (openedSquares[position] == false) {
+                        setState(() {
+                          flaggedSquares[position] = true;
+                        });
+                      }
+                    },
+                    splashColor: Colors.grey,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height*0.05,
+                      color: Colors.grey,
+                      child: _child,
+                    ),
+                  );
+                },
+                itemCount: rowCount * columnCount,
+              ),
+            ),
+      ),
     );
   }
 
