@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'model/square.dart';
 import 'dart:math' show Random;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
+enum TileState { defaultBoard, blown, open, flagged, revealed }
 enum SquareType {
   zero,
   one,
@@ -19,15 +22,22 @@ enum SquareType {
   flagged,
 }
 
+int rowCount;
+int columnCount;
+
+void updateCount(int row, int column){
+  rowCount = row;
+  columnCount = column;
+}
+
 class GameBoard extends StatefulWidget {
+  
   @override
   _GameBoardState createState() => _GameBoardState();
 }
 
 class _GameBoardState extends State<GameBoard> {
-  int rowCount = 25;
 
-  int columnCount = 10;
 
   List<List<BoardSquare>> boardSquares;
 
@@ -41,6 +51,13 @@ class _GameBoardState extends State<GameBoard> {
 
   int bombCount = 0;
 
+  int bombRemaining = 0;
+  bool alive = true;
+  bool wonGame = false;
+  int minesFound = 0;
+  Timer timer;
+  Stopwatch stopwatch=Stopwatch();
+
   int squaresLeft;
 
   @override
@@ -49,7 +66,26 @@ class _GameBoardState extends State<GameBoard> {
     initialiseGame();
   }
 
+  @override
+  void dispose() {
+    timer?.cancel();
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  void reset(){
+    minesFound = 0;
+    bombRemaining = 0;
+    stopwatch.stop();
+    stopwatch.reset();
+    timer?.cancel();
+    setState(() {
+      
+    });
+  }
+
   void initialiseGame(){
+    
     boardSquares = List.generate(rowCount, (index) => List.generate(columnCount, (index) => BoardSquare()));
 
     openedSquares = List.generate(rowCount * columnCount, (i) => false);
@@ -66,9 +102,12 @@ class _GameBoardState extends State<GameBoard> {
         if (randomNumber < bombProbabilityLimit) {
           boardSquares[i][j].hasBomb = true;
           bombCount++;
+          bombRemaining++;
         }
       }
     }
+
+
     for (int i = 0; i < rowCount; i++) {
       for (int j = 0; j < columnCount; j++) {
         if (i > 0 && j > 0) {
@@ -120,7 +159,43 @@ class _GameBoardState extends State<GameBoard> {
         }
       }
     }
-    setState((){});
+
+    setState(() {});
+  }
+
+  void _gameOver(context) {
+    timer.cancel();
+    stopwatch.stop();
+    timer = null;
+    setState(() {
+      
+    });
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Game Over!"),
+          content: Column(
+            children: [
+              Text('Number of mines found $minesFound'),
+              Text('Number of mines left $bombRemaining'),
+              Text('Time taken ${stopwatch.elapsedMilliseconds~/1000}'),
+              Text("Ooops!! You lost the game."),
+            ],
+          ),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: Text("Play again"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _handleTap(int i, int j) {
@@ -168,28 +243,9 @@ class _GameBoardState extends State<GameBoard> {
     setState(() {});
   }
 
-  void _gameOver(context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Game Over!"),
-          content: Text("Ooops!! You lost the game."),
-          actions: <Widget>[
-            FlatButton(
-              onPressed: () {
-                initialiseGame();
-                Navigator.pop(context);
-              },
-              child: Text("Play again"),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   void _win(context) {
+    stopwatch.stop();
     showDialog(
       context: context,
       builder: (context) {
@@ -199,7 +255,6 @@ class _GameBoardState extends State<GameBoard> {
           actions: <Widget>[
             FlatButton(
               onPressed: () {
-                initialiseGame();
                 Navigator.pop(context);
               },
               child: Text("Play again"),
@@ -212,21 +267,46 @@ class _GameBoardState extends State<GameBoard> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
+    int timeElapsed = stopwatch.elapsedMilliseconds ~/ 1000;
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       key: _scaffoldKey,
       appBar: AppBar(
-        title: MaterialButton(
-          child: Icon(Icons.refresh),
-          onPressed: (){
-            _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Refreshed'), duration: Duration(milliseconds: 500),));
-            initialiseGame();
-          },
+        title: Row(
+          children: [
+            Spacer(flex: 3,),
+            Text('Super Mines'),
+            Spacer(flex: 1,),
+            MaterialButton(
+              child: Icon(Icons.refresh),
+              onPressed: (){
+                reset();
+                _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Refreshed',), duration: Duration(milliseconds: 500),));
+                initialiseGame();
+              },
+            ),
+          ],
         ),
-        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(45.0),
+          child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                  height: 40.0,
+                  alignment: Alignment.center,
+                  child: RichText(
+                    text: TextSpan(
+                      text: wonGame ? "You won, $timeElapsed seconds" : alive ? "[Time: $timeElapsed seconds]  [Mines found: $minesFound]  [Mines remaining: $bombRemaining]  [Total mines: $bombCount]" : "You lost in $timeElapsed seconds",style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1.5)
+                    ),
+                  ),
+                )
+            ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
               child: GridView.builder(
+                padding: EdgeInsets.all(1),
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
@@ -258,6 +338,12 @@ class _GameBoardState extends State<GameBoard> {
 
                   return InkWell(
                     onTap: () {
+                      timer = timer ??Timer.periodic(Duration(seconds: 1), (Timer timer) {
+                        setState(() {
+                          
+                        });
+                      });
+                      if(!stopwatch.isRunning) stopwatch.start();
                       if (boardSquares[rowNumber][columnNumber].hasBomb) {
                         _gameOver(context);
                       }
@@ -277,16 +363,31 @@ class _GameBoardState extends State<GameBoard> {
                     },
                     onLongPress: () {
                       if (openedSquares[position] == false) {
-                        setState(() {
-                          flaggedSquares[position] = true;
-                        });
+                        if(boardSquares[rowNumber][columnNumber].hasBomb){
+                          setState(() {
+                            print(position%10);
+                            bombRemaining -= 1;
+                            minesFound++;
+                            flaggedSquares[position] = !flaggedSquares[position];
+                          });
+                        }else{
+                          setState(() {
+                            print(position);
+                            flaggedSquares[position] = !flaggedSquares[position];
+                          });
+                        }
                       }
                     },
                     splashColor: Colors.grey,
                     child: Container(
                       height: MediaQuery.of(context).size.height*0.05,
-                      color: Colors.grey,
-                      child: _child,
+                      color: Colors.white,
+                      child: Card(
+                        color: Colors.grey.shade400,
+                        shadowColor: Colors.grey.shade300,
+                        elevation: 5,
+                        child: _child
+                      ),
                     ),
                   );
                 },
@@ -297,30 +398,32 @@ class _GameBoardState extends State<GameBoard> {
     );
   }
 
+  TextStyle textStyle = TextStyle(fontSize: 17,);
+
   getSquareTile(SquareType type){
     switch(type){
       case SquareType.zero:
         return Card(color: Colors.grey,);
       case SquareType.one:
-        return Text('1');
+        return Center(child: Text('1', style: textStyle,),);
       case SquareType.two:
-        return Text('2');
+        return Center(child: Text('2', style: textStyle,));
       case SquareType.three:
-        return Text('3');
+        return Center(child: Text('3', style: textStyle,));
       case SquareType.four:
-        return Text('4');
+        return Center(child: Text('4', style: textStyle,));
       case SquareType.five:
-        return Text('5');
+        return Center(child: Text('5', style: textStyle,));
       case SquareType.six:
-        return Text('6');
+        return Center(child: Text('6', style: textStyle,));
       case SquareType.seven:
-        return Text('7');
+        return Center(child: Text('7', style: textStyle,));
       case SquareType.eight:
-        return Text('8');
+        return Center(child: Text('8', style: textStyle,));
       case SquareType.bomb:
         return Icon(FontAwesomeIcons.bomb);
       case SquareType.facingDown:
-        return Icon(FontAwesomeIcons.smile);
+        return null;
       case SquareType.flagged:
         return Icon(FontAwesomeIcons.flag);
       default:
