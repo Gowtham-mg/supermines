@@ -171,18 +171,24 @@ class _GameBoardState extends State<GameBoard> {
       
     });
     showDialog(
+      useSafeArea: true,
       barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
+
           title: Text("Game Over!"),
-          content: Column(
-            children: [
+          content: Container(
+            height: MediaQuery.of(context).size.height *0.3,
+            child: Column(children:[
               Text('Number of mines found $minesFound'),
+              SizedBox(height: 10,),
               Text('Number of mines left $bombRemaining'),
+              SizedBox(height: 10,),
               Text('Time taken ${stopwatch.elapsedMilliseconds~/1000}'),
+              SizedBox(height:10),
               Text("Ooops!! You lost the game."),
-            ],
+            ],)
           ),
           actions: <Widget>[
             FlatButton(

@@ -27,21 +27,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // TODO: implement dispose
     super.dispose();
   }
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: Colors.blueGrey.shade100,
       body: PageView(
         controller: _pageController ,
-        // onPageChanged: (index){
-        //   if(index==1 && controller != null){
-        //     controller.dispose();
-        //   }
-          // _pageController.dispose();
-        // },
         children: [
           Stack(
           children: [
@@ -75,13 +68,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text('Welcome to supermines', style: TextStyle(letterSpacing: 2, fontSize: 20, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600), ),
+            SizedBox(height: 20,),
             RaisedButton(
               shape: StadiumBorder(side: BorderSide(color: Colors.orange, style: BorderStyle.solid, width: 1)),
               elevation: 5,
-              child: Text('Easy'),
+              child: Text('Easy',style: TextStyle(fontSize: 18),),
               onPressed: (){
                 controller.stop();
-                _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Your board is getting ready'),duration: Duration(seconds: 1),));
                 updateCount(10, 6);
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> GameBoard()));
               },
@@ -92,10 +86,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               animationDuration: Duration(seconds: 1),
                 shape: StadiumBorder(side: BorderSide(color: Colors.orange, style: BorderStyle.solid, width: 1)),
                 elevation: 5,
-                child: Text('Medium'),
+                child: Text('Medium',style: TextStyle(fontSize: 18),),
                 onPressed: (){
                 controller.stop();
-                _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Your board is getting ready'),duration: Duration(seconds: 2),));
                 updateCount(13, 8);
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> GameBoard()));
               },
@@ -110,11 +103,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               clipBehavior: Clip.antiAliasWithSaveLayer,
               shape: StadiumBorder(side: BorderSide(color: Colors.orange, style: BorderStyle.solid, width: 1)),
               elevation: 5,
-              child: Text('Hard'),
-                color: Colors.orange.shade200,
+              child: Text('Hard', style: TextStyle(fontSize: 18),),
+                color: Colors.orange.shade300,
               onPressed: (){
                 controller.stop();
-                _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Your board is getting ready'),duration: Duration(seconds: 3),));
                 updateCount(15, 10);
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> GameBoard()));
               },
