@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   )
                 ),
                 height: size.height * 0.1,
-                child: Center(child: Text('Swipe Right to start', style: TextStyle(color: Colors.white, fontSize: size.height*0.03),)),
+                child: Center(child: Text('Swipe Left to start', style: TextStyle(color: Colors.white, fontSize: size.height*0.03),)),
                 width: double.infinity,
               ),
             )

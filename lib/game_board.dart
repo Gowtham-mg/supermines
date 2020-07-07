@@ -59,6 +59,7 @@ class _GameBoardState extends State<GameBoard> {
   Stopwatch stopwatch=Stopwatch();
 
   int squaresLeft;
+  int totalSquares;
 
   @override
   void initState() {
@@ -94,6 +95,7 @@ class _GameBoardState extends State<GameBoard> {
 
     bombCount = 0;
     squaresLeft = rowCount * columnCount;
+    totalSquares = rowCount * columnCount;
 
     Random random = new Random();
     for (int i = 0; i < rowCount; i++) {
@@ -186,6 +188,8 @@ class _GameBoardState extends State<GameBoard> {
               Text('Number of mines left $bombRemaining'),
               SizedBox(height: 10,),
               Text('Time taken ${stopwatch.elapsedMilliseconds~/1000}'),
+              SizedBox(height:10),
+              Text("Number of squares opened ${totalSquares-squaresLeft}"),
               SizedBox(height:10),
               Text("Ooops!! You lost the game."),
             ],)
@@ -374,12 +378,14 @@ class _GameBoardState extends State<GameBoard> {
                             print(position%10);
                             bombRemaining -= 1;
                             minesFound++;
-                            flaggedSquares[position] = !flaggedSquares[position];
+                            flaggedSquares[position] = true;
+                            squaresLeft = squaresLeft - 1;
                           });
                         }else{
                           setState(() {
                             print(position);
-                            flaggedSquares[position] = !flaggedSquares[position];
+                            flaggedSquares[position] = true;
+                            squaresLeft = squaresLeft - 1;
                           });
                         }
                       }
