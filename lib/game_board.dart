@@ -5,7 +5,6 @@ import 'model/square.dart';
 import 'dart:math' show Random;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-
 enum TileState { defaultBoard, blown, open, flagged, revealed }
 enum SquareType {
   zero,
@@ -25,20 +24,17 @@ enum SquareType {
 int rowCount;
 int columnCount;
 
-void updateCount(int row, int column){
+void updateCount(int row, int column) {
   rowCount = row;
   columnCount = column;
 }
 
 class GameBoard extends StatefulWidget {
-  
   @override
   _GameBoardState createState() => _GameBoardState();
 }
 
 class _GameBoardState extends State<GameBoard> {
-
-
   List<List<BoardSquare>> boardSquares;
 
   List<bool> openedSquares;
@@ -56,7 +52,7 @@ class _GameBoardState extends State<GameBoard> {
   bool wonGame = false;
   int minesFound = 0;
   Timer timer;
-  Stopwatch stopwatch=Stopwatch();
+  Stopwatch stopwatch = Stopwatch();
 
   int squaresLeft;
   int totalSquares;
@@ -74,20 +70,19 @@ class _GameBoardState extends State<GameBoard> {
     super.dispose();
   }
 
-  void reset(){
-    minesFound = 0;
-    bombRemaining = 0;
+  void reset() {
     stopwatch.stop();
     stopwatch.reset();
     timer?.cancel();
     setState(() {
-      
+      minesFound = 0;
+      bombRemaining = 0;
     });
   }
 
-  void initialiseGame(){
-    
-    boardSquares = List.generate(rowCount, (index) => List.generate(columnCount, (index) => BoardSquare()));
+  void initialiseGame() {
+    boardSquares = List.generate(rowCount,
+        (index) => List.generate(columnCount, (index) => BoardSquare()));
 
     openedSquares = List.generate(rowCount * columnCount, (i) => false);
 
@@ -108,7 +103,6 @@ class _GameBoardState extends State<GameBoard> {
         }
       }
     }
-
 
     for (int i = 0; i < rowCount; i++) {
       for (int j = 0; j < columnCount; j++) {
@@ -169,30 +163,36 @@ class _GameBoardState extends State<GameBoard> {
     timer.cancel();
     stopwatch.stop();
     timer = null;
-    setState(() {
-      
-    });
+    setState(() {});
     showDialog(
       useSafeArea: true,
       barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
-
-          title: Text("Game Over!"),
+          title: Text(
+            "Game Over!",
+            textAlign: TextAlign.center,
+          ),
           content: Container(
-            height: MediaQuery.of(context).size.height *0.3,
-            child: Column(children:[
-              Text('Number of mines found $minesFound'),
-              SizedBox(height: 10,),
-              Text('Number of mines left $bombRemaining'),
-              SizedBox(height: 10,),
-              Text('Time taken ${stopwatch.elapsedMilliseconds~/1000}'),
-              SizedBox(height:10),
-              Text("Number of squares opened ${totalSquares-squaresLeft}"),
-              SizedBox(height:10),
-              Text("Ooops!! You lost the game."),
-            ],)
+            height: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Number of mines found $minesFound'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text('Number of mines left $bombRemaining'),
+                ),
+                Text('Time taken ${stopwatch.elapsedMilliseconds ~/ 1000}'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(
+                      "Number of squares opened ${totalSquares - squaresLeft}"),
+                ),
+                Text("Ooops!! You lost the game."),
+              ],
+            ),
           ),
           actions: <Widget>[
             FlatButton(
@@ -209,7 +209,6 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   void _handleTap(int i, int j) {
-
     int position = (i * columnCount) + j;
     openedSquares[position] = true;
     squaresLeft = squaresLeft - 1;
@@ -253,7 +252,6 @@ class _GameBoardState extends State<GameBoard> {
     setState(() {});
   }
 
-
   void _win(context) {
     stopwatch.stop();
     showDialog(
@@ -274,24 +272,30 @@ class _GameBoardState extends State<GameBoard> {
       },
     );
   }
+
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     int timeElapsed = stopwatch.elapsedMilliseconds ~/ 1000;
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+      resizeToAvoidBottomInset: true,
       key: _scaffoldKey,
       appBar: AppBar(
         title: Row(
           children: [
-            Spacer(flex: 3,),
+            Spacer(flex: 3),
             Text('Super Mines'),
-            Spacer(flex: 1,),
+            Spacer(flex: 1),
             MaterialButton(
               child: Icon(Icons.refresh),
-              onPressed: (){
+              onPressed: () {
                 reset();
-                _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Refreshed',), duration: Duration(milliseconds: 500),));
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    'Refreshed',
+                  ),
+                  duration: Duration(milliseconds: 500),
+                ));
                 initialiseGame();
               },
             ),
@@ -302,136 +306,186 @@ class _GameBoardState extends State<GameBoard> {
           child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Container(
-                  height: 40.0,
-                  alignment: Alignment.center,
-                  child: RichText(
-                    text: TextSpan(
-                      text: wonGame ? "You won, $timeElapsed seconds" : alive ? "[Time: $timeElapsed seconds]  [Mines found: $minesFound]  [Mines remaining: $bombRemaining]  [Total mines: $bombCount]" : "You lost in $timeElapsed seconds",style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1.5)
+                height: 40.0,
+                alignment: Alignment.center,
+                child: RichText(
+                  text: TextSpan(
+                    text: wonGame
+                        ? "You won, $timeElapsed seconds"
+                        : alive
+                            ? "[Time: $timeElapsed seconds]  [Mines found: $minesFound]  [Mines remaining: $bombRemaining]  [Total mines: $bombCount]"
+                            : "You lost in $timeElapsed seconds",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
                     ),
                   ),
-                )
-            ),
+                ),
+              )),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-              child: GridView.builder(
-                padding: EdgeInsets.all(1),
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columnCount,
-                ),
-                itemBuilder: (context, position) {
-                  int rowNumber = (position / columnCount).floor();
-                  int columnNumber = (position % columnCount);
+          child: GridView.builder(
+            padding: EdgeInsets.all(1),
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columnCount,
+            ),
+            itemBuilder: (context, position) {
+              int rowNumber = (position / columnCount).floor();
+              int columnNumber = (position % columnCount);
 
-                  Widget _child;
+              Widget _child;
 
-                  if (openedSquares[position] == false) {
-                    if (flaggedSquares[position] == true) {
-                      _child = getSquareTile(SquareType.flagged);
-                    } else {
-                      _child = getSquareTile(SquareType.facingDown);
-                    }
+              if (openedSquares[position] == false) {
+                if (flaggedSquares[position] == true) {
+                  _child = getSquareTile(SquareType.flagged);
+                } else {
+                  _child = getSquareTile(SquareType.facingDown);
+                }
+              } else {
+                if (boardSquares[rowNumber][columnNumber].hasBomb) {
+                  _child = getSquareTile(SquareType.bomb);
+                } else {
+                  _child = getSquareTile(
+                    getSquareTypeFromNumber(
+                        boardSquares[rowNumber][columnNumber].bombsAround),
+                  );
+                }
+              }
+
+              return InkWell(
+                onTap: () {
+                  timer = timer ??
+                      Timer.periodic(Duration(seconds: 1), (Timer timer) {
+                        setState(() {});
+                      });
+                  if (!stopwatch.isRunning) stopwatch.start();
+                  if (boardSquares[rowNumber][columnNumber].hasBomb) {
+                    _gameOver(context);
+                  }
+                  if (boardSquares[rowNumber][columnNumber].bombsAround == 0) {
+                    _handleTap(rowNumber, columnNumber);
                   } else {
-                    if (boardSquares[rowNumber][columnNumber].hasBomb) {
-                      _child = getSquareTile(SquareType.bomb);
-                    } else {
-                      _child = getSquareTile(
-                        getSquareTypeFromNumber(
-                            boardSquares[rowNumber][columnNumber].bombsAround),
-                      );
-                    }
+                    setState(() {
+                      openedSquares[position] = true;
+                      squaresLeft = squaresLeft - 1;
+                    });
                   }
 
-                  return InkWell(
-                    onTap: () {
-                      timer = timer ??Timer.periodic(Duration(seconds: 1), (Timer timer) {
-                        setState(() {
-                          
-                        });
-                      });
-                      if(!stopwatch.isRunning) stopwatch.start();
-                      if (boardSquares[rowNumber][columnNumber].hasBomb) {
-                        _gameOver(context);
-                      }
-                      if (boardSquares[rowNumber][columnNumber].bombsAround == 0) {
-                        _handleTap(rowNumber, columnNumber);
-                      } else {
-                        setState(() {
-                          openedSquares[position] = true;
-                          squaresLeft = squaresLeft - 1;
-                        });
-                      }
-
-                      if(squaresLeft <= bombCount) {
-                        _win(context);
-                      }
-
-                    },
-                    onLongPress: () {
-                      if (openedSquares[position] == false) {
-                        if(boardSquares[rowNumber][columnNumber].hasBomb){
-                          setState(() {
-                            print(position%10);
-                            bombRemaining -= 1;
-                            minesFound++;
-                            flaggedSquares[position] = true;
-                            squaresLeft = squaresLeft - 1;
-                          });
-                        }else{
-                          setState(() {
-                            print(position);
-                            flaggedSquares[position] = true;
-                            squaresLeft = squaresLeft - 1;
-                          });
-                        }
-                      }
-                    },
-                    splashColor: Colors.grey,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height*0.05,
-                      color: Colors.white,
-                      child: Card(
-                        color: Colors.grey.shade400,
-                        shadowColor: Colors.grey.shade300,
-                        elevation: 5,
-                        child: _child
-                      ),
-                    ),
-                  );
+                  if (squaresLeft <= bombCount) {
+                    _win(context);
+                  }
                 },
-                itemCount: rowCount * columnCount,
-              ),
-            ),
+                onLongPress: () {
+                  if (openedSquares[position] == false) {
+                    if (boardSquares[rowNumber][columnNumber].hasBomb) {
+                      setState(() {
+                        print(position % 10);
+                        bombRemaining -= 1;
+                        minesFound++;
+                        flaggedSquares[position] = true;
+                        squaresLeft = squaresLeft - 1;
+                      });
+                    } else {
+                      setState(() {
+                        print(position);
+                        flaggedSquares[position] = true;
+                        squaresLeft = squaresLeft - 1;
+                      });
+                    }
+                  }
+                },
+                splashColor: Colors.grey,
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.05,
+                  color: Colors.white,
+                  child: Card(
+                    color: Colors.grey.shade400,
+                    shadowColor: Colors.grey.shade300,
+                    elevation: 5,
+                    child: _child,
+                  ),
+                ),
+              );
+            },
+            itemCount: rowCount * columnCount,
+          ),
+        ),
       ),
     );
   }
 
-  TextStyle textStyle = TextStyle(fontSize: 17,);
+  TextStyle textStyle = TextStyle(
+    fontSize: 17,
+  );
 
-  getSquareTile(SquareType type){
-    switch(type){
+  getSquareTile(SquareType type) {
+    switch (type) {
       case SquareType.zero:
-        return Card(color: Colors.grey,);
+        return Card(
+          color: Colors.grey,
+        );
       case SquareType.one:
-        return Center(child: Text('1', style: textStyle,),);
+        return Center(
+          child: Text(
+            '1',
+            style: textStyle,
+          ),
+        );
       case SquareType.two:
-        return Center(child: Text('2', style: textStyle,));
+        return Center(
+          child: Text(
+            '2',
+            style: textStyle,
+          ),
+        );
       case SquareType.three:
-        return Center(child: Text('3', style: textStyle,));
+        return Center(
+          child: Text(
+            '3',
+            style: textStyle,
+          ),
+        );
       case SquareType.four:
-        return Center(child: Text('4', style: textStyle,));
+        return Center(
+          child: Text(
+            '4',
+            style: textStyle,
+          ),
+        );
       case SquareType.five:
-        return Center(child: Text('5', style: textStyle,));
+        return Center(
+          child: Text(
+            '5',
+            style: textStyle,
+          ),
+        );
       case SquareType.six:
-        return Center(child: Text('6', style: textStyle,));
+        return Center(
+          child: Text(
+            '6',
+            style: textStyle,
+          ),
+        );
       case SquareType.seven:
-        return Center(child: Text('7', style: textStyle,));
+        return Center(
+          child: Text(
+            '7',
+            style: textStyle,
+          ),
+        );
       case SquareType.eight:
-        return Center(child: Text('8', style: textStyle,));
+        return Center(
+          child: Text(
+            '8',
+            style: textStyle,
+          ),
+        );
       case SquareType.bomb:
         return Icon(FontAwesomeIcons.bomb);
       case SquareType.facingDown:
@@ -443,8 +497,8 @@ class _GameBoardState extends State<GameBoard> {
     }
   }
 
-  getSquareTypeFromNumber(int number){
-    switch(number){
+  getSquareTypeFromNumber(int number) {
+    switch (number) {
       case 0:
         return SquareType.zero;
       case 1:
